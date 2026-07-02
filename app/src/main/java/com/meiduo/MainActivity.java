@@ -101,8 +101,8 @@ public class MainActivity extends Activity {
                 findViewById(R.id.nav_page2_icon),
                 findViewById(R.id.nav_page2_text),
                 getString(R.string.url_page2),
-                R.drawable.ic_discover,
-                R.drawable.ic_discover_active
+                R.drawable.ic_2,
+                R.drawable.ic_2_active
         );
 
         // 消息
@@ -111,8 +111,8 @@ public class MainActivity extends Activity {
                 findViewById(R.id.nav_page3_icon),
                 findViewById(R.id.nav_page3_text),
                 getString(R.string.url_page3),
-                R.drawable.ic_message,
-                R.drawable.ic_message_active
+                R.drawable.ic_3,
+                R.drawable.ic_3_active
         );
 
         // 我的
@@ -121,8 +121,8 @@ public class MainActivity extends Activity {
                 findViewById(R.id.nav_page4_icon),
                 findViewById(R.id.nav_page4_text),
                 getString(R.string.url_page4),
-                R.drawable.ic_profile,
-                R.drawable.ic_profile_active
+                R.drawable.ic_4,
+                R.drawable.ic_4_active
         );
     }
 
