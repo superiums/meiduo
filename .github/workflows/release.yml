@@ -80,6 +80,8 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew test
 
+      - name: Verify signing config
+        run: ./gradlew :app:signingReport
       # 7. 构建 Release AAB 包（已签名）
       # - name: Build Release AAB
       #   env:
@@ -105,11 +107,17 @@ jobs:
       #     name: app-release-aab
       #     path: app/build/outputs/bundle/release/app-release.aab
 
+      - name: List APK outputs
+        run: |
+          echo "=== APK outputs ==="
+          ls -lh app/build/outputs/apk/release/ || echo "release dir missing"
+          find app/build -name "*.apk" | sort
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          path: app/build/outputs/apk/release/*.apk
 
   # 10. 发布到 GitHub Release（仅当推送 tag 时执行）
   release:
