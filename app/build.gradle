@@ -21,10 +21,14 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(System.getenv("ORG_GRADLE_PROJECT_storeFile"))
-            storePassword System.getenv("ORG_GRADLE_PROJECT_storePassword")
-            keyAlias System.getenv("ORG_GRADLE_PROJECT_keyAlias")
-            keyPassword System.getenv("ORG_GRADLE_PROJECT_keyPassword")
+            // 只有在变量存在时才赋值
+            def storePath = System.getenv("ORG_GRADLE_PROJECT_storeFile")
+            if (storePath != null) {
+                storeFile file(storePath)
+                storePassword System.getenv("ORG_GRADLE_PROJECT_storePassword")
+                keyAlias System.getenv("ORG_GRADLE_PROJECT_keyAlias")
+                keyPassword System.getenv("ORG_GRADLE_PROJECT_keyPassword")
+            }
         }
     }
 
