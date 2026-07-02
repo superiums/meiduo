@@ -72,7 +72,7 @@
                 android:textColor="#666666" />
         </LinearLayout>
 
-        <!-- 发现 -->
+        <!-- 2 -->
         <LinearLayout
             android:id="@+id/nav_page2"
             android:layout_width="0dp"
@@ -88,7 +88,7 @@
                 android:id="@+id/nav_page2_icon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_discover" />
+                android:src="@drawable/ic_2" />
 
             <TextView
                 android:id="@+id/nav_page2_text"
@@ -99,7 +99,7 @@
                 android:textColor="#666666" />
         </LinearLayout>
 
-        <!-- 消息 -->
+        <!-- 3 -->
         <LinearLayout
             android:id="@+id/nav_page3"
             android:layout_width="0dp"
@@ -115,7 +115,7 @@
                 android:id="@+id/nav_page3_icon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_message" />
+                android:src="@drawable/ic_3" />
 
             <TextView
                 android:id="@+id/nav_page3_text"
@@ -126,7 +126,7 @@
                 android:textColor="#666666" />
         </LinearLayout>
 
-        <!-- 我的 -->
+        <!-- 4 -->
         <LinearLayout
             android:id="@+id/nav_page4"
             android:layout_width="0dp"
@@ -142,7 +142,7 @@
                 android:id="@+id/nav_page4_icon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_profile" />
+                android:src="@drawable/ic_4" />
 
             <TextView
                 android:id="@+id/nav_page4_text"
