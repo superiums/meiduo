@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">美朵</string>
+    <string name="app_name">美朵冥想</string>
+        <!-- 导航栏文字 -->
+    <string name="nav_home">首页</string>
+    <string name="nav_page2">练习</string>
+    <string name="nav_page3">课程</string>
+    <string name="nav_page4">关于</string>
+
+    <!-- 四个 URL -->
+    <string name="url_home">http://www.chana.cc.cd</string>
+    <string name="url_page2">http://www.chana.cc.cd/practice</string>
+    <string name="url_page3">http://www.chana.cc.cd/course</string>
+    <string name="url_page4">http://www.chana.cc.cd/about</string>
+
+    <!-- 错误提示 -->
+    <string name="error_network">网络连接错误，请检查网络后重试</string>
+    <string name="error_dns">DNS 解析错误，请检查网址</string>
+    <string name="error_ssl">SSL 证书错误</string>
+    <string name="error_redirect">网页重定向循环</string>
+    <string name="error_unknown">网页加载失败</string>
 </resources>

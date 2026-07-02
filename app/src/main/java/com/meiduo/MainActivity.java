@@ -5,79 +5,168 @@ import android.graphics.Color;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.view.View;
+import android.webkit.WebBackForwardList;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 美朵 - 固定展示网页的 Android 应用
- * ✅ 支持 HTTP（明文流量）
+ * ✅ 底部导航栏（图标+文字）+ 滑动返回 + 加载动画
+ * ✅ URL 和文案全部来自 strings.xml
  */
 public class MainActivity extends Activity {
 
-    // ✅ 允许 HTTP
-    private static final String TARGET_URL = "http://www.chana.cc.cd";
-
-    private static final int VIEW_ERROR = 0;
-    private static final int VIEW_WEB = 1;
-
-    private FrameLayout container;
+    // ==================== UI 组件 ====================
     private WebView webView;
+    private ProgressBar loadingProgress;
     private TextView errorView;
-    private int currentState = VIEW_ERROR;
+
+    // 导航项（容器 + 图标 + 文字）
+    private NavItem navHome;
+    private NavItem navPage2;
+    private NavItem navPage3;
+    private NavItem navPage4;
+
+    // ==================== 状态 ====================
+    private static final int STATE_WEB = 1;
+    private static final int STATE_ERROR = 2;
+    private int currentState = STATE_WEB;
+
+    // URL 历史（用于滑动返回）
+    private final List<String> urlHistory = new ArrayList<>();
+    private int currentNavIndex = 0;
+
+    // ==================== 导航项数据类 ====================
+    private static class NavItem {
+        LinearLayout container;
+        ImageView icon;
+        TextView text;
+        String url;
+        int iconRes;       // 普通图标
+        int iconActiveRes;  // 选中图标
+
+        NavItem(LinearLayout container, ImageView icon, TextView text,
+                String url, int iconRes, int iconActiveRes) {
+            this.container = container;
+            this.icon = icon;
+            this.text = text;
+            this.url = url;
+            this.iconRes = iconRes;
+            this.iconActiveRes = iconActiveRes;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        container = findViewById(R.id.container);
+        initViews();
+        setupWebView();
+        setupNavigation();
+        loadHome();
+    }
+
+    // ==================== 初始化 UI ====================
+
+    private void initViews() {
         webView = findViewById(R.id.webView);
+        loadingProgress = findViewById(R.id.loadingProgress);
         errorView = findViewById(R.id.errorView);
 
-        setupWebView();
-        loadUrl();
+        // 首页
+        navHome = new NavItem(
+                findViewById(R.id.nav_home),
+                findViewById(R.id.nav_home_icon),
+                findViewById(R.id.nav_home_text),
+                getString(R.string.url_home),
+                R.drawable.ic_home,
+                R.drawable.ic_home_active
+        );
+
+        // 发现
+        navPage2 = new NavItem(
+                findViewById(R.id.nav_page2),
+                findViewById(R.id.nav_page2_icon),
+                findViewById(R.id.nav_page2_text),
+                getString(R.string.url_page2),
+                R.drawable.ic_discover,
+                R.drawable.ic_discover_active
+        );
+
+        // 消息
+        navPage3 = new NavItem(
+                findViewById(R.id.nav_page3),
+                findViewById(R.id.nav_page3_icon),
+                findViewById(R.id.nav_page3_text),
+                getString(R.string.url_page3),
+                R.drawable.ic_message,
+                R.drawable.ic_message_active
+        );
+
+        // 我的
+        navPage4 = new NavItem(
+                findViewById(R.id.nav_page4),
+                findViewById(R.id.nav_page4_icon),
+                findViewById(R.id.nav_page4_text),
+                getString(R.string.url_page4),
+                R.drawable.ic_profile,
+                R.drawable.ic_profile_active
+        );
     }
+
+    // ==================== WebView 配置 ====================
 
     private void setupWebView() {
         WebSettings settings = webView.getSettings();
 
         settings.setJavaScriptEnabled(true);
-
-        // ✅ 允许 HTTP / HTTPS 混合内容（API 21+）
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-
         settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setAllowFileAccess(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
-
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
 
-        // ✅ WebView 远程调试（静态方法）
         WebView.setWebContentsDebuggingEnabled(true);
+
+        // 进度条
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                loadingProgress.setProgress(newProgress);
+                if (newProgress < 100) {
+                    showLoading();
+                } else {
+                    hideLoading();
+                }
+            }
+        });
 
         webView.setWebViewClient(new WebViewClient() {
 
-            /**
-             * ✅ 允许 WebView 自己处理 HTTP / HTTPS
-             */
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                // false = WebView 加载该 URL
+                urlHistory.add(url);
                 return false;
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                view.setVisibility(View.VISIBLE);
-                container.setVisibility(View.VISIBLE);
+                showWebView();
             }
 
             @Override
@@ -90,10 +179,9 @@ public class MainActivity extends Activity {
             public void onReceivedSslError(WebView view,
                                            android.webkit.SslErrorHandler handler,
                                            SslError error) {
-                // ⚠️ HTTP 不会触发 SSL 错误
                 showErrorView(
                         error.getPrimaryError(),
-                        "SSL 证书错误",
+                        getString(R.string.error_ssl),
                         error.getUrl()
                 );
                 handler.cancel();
@@ -111,46 +199,143 @@ public class MainActivity extends Activity {
             }
         });
 
-        webView.setBackgroundColor(Color.TRANSPARENT);
+        webView.setBackgroundColor(Color.WHITE);
     }
 
-    private void loadUrl() {
-        webView.getSettings().setLoadWithOverviewMode(true);
-        webView.getSettings().setUseWideViewPort(true);
-        webView.loadUrl(TARGET_URL);
+    // ==================== 底部导航 ====================
+
+    private void setupNavigation() {
+        navHome.container.setOnClickListener(v -> selectNav(navHome, 0));
+        navPage2.container.setOnClickListener(v -> selectNav(navPage2, 1));
+        navPage3.container.setOnClickListener(v -> selectNav(navPage3, 2));
+        navPage4.container.setOnClickListener(v -> selectNav(navPage4, 3));
+    }
+
+    /**
+     * 选中指定导航项，加载对应 URL
+     */
+    private void selectNav(NavItem item, int index) {
+        currentNavIndex = index;
+        loadUrl(item.url);
+        highlightNav(item);
+    }
+
+    /**
+     * 高亮当前导航项，切换图标和文字颜色
+     */
+    private void highlightNav(NavItem active) {
+        // 全部重置为普通态
+        resetNav(navHome);
+        resetNav(navPage2);
+        resetNav(navPage3);
+        resetNav(navPage4);
+
+        // 选中项：切换图标 + 高亮文字
+        active.icon.setImageResource(active.iconActiveRes);
+        active.text.setTextColor(Color.parseColor("#3DDC84"));
+    }
+
+    /**
+     * 重置导航项为普通态
+     */
+    private void resetNav(NavItem item) {
+        item.icon.setImageResource(item.iconRes);
+        item.text.setTextColor(Color.parseColor("#999999"));
+    }
+
+    // ==================== 页面加载 ====================
+
+    private void loadHome() {
+        currentNavIndex = 0;
+        loadUrl(navHome.url);
+        highlightNav(navHome);
+    }
+
+    private void loadUrl(String url) {
+        showLoading();
+        webView.loadUrl(url);
+    }
+
+    // ==================== 滑动返回 ====================
+
+    @Override
+    public void onBackPressed() {
+        goBack();
+    }
+
+    private void goBack() {
+        if (webView.canGoBack()) {
+            webView.goBack();
+            if (!urlHistory.isEmpty()) {
+                urlHistory.remove(urlHistory.size() - 1);
+            }
+        } else {
+            // 已在最底层，回到首页或退出
+            if (currentNavIndex != 0) {
+                navHome.container.performClick();
+            } else {
+                finish();
+            }
+        }
+    }
+
+    // ==================== 状态切换 ====================
+
+    private void showLoading() {
+        currentState = STATE_WEB;
+        loadingProgress.setVisibility(View.VISIBLE);
+        webView.setVisibility(View.VISIBLE);
+        errorView.setVisibility(View.GONE);
+    }
+
+    private void hideLoading() {
+        loadingProgress.setVisibility(View.GONE);
+    }
+
+    private void showWebView() {
+        currentState = STATE_WEB;
+        loadingProgress.setVisibility(View.GONE);
+        webView.setVisibility(View.VISIBLE);
+        errorView.setVisibility(View.GONE);
     }
 
     private void showErrorView(int errorCode, String description, String url) {
-        if (currentState != VIEW_ERROR) {
-            currentState = VIEW_ERROR;
+        if (currentState != STATE_ERROR) {
+            currentState = STATE_ERROR;
+            loadingProgress.setVisibility(View.GONE);
             webView.setVisibility(View.GONE);
-            container.setVisibility(View.GONE);
-
-            errorView.setText(formatErrorMessage(errorCode, description, url));
             errorView.setVisibility(View.VISIBLE);
-            container.setVisibility(View.VISIBLE);
+            errorView.setText(formatErrorMessage(errorCode, description, url));
         }
     }
 
+    // ==================== 错误消息 ====================
+
     private String formatErrorMessage(int errorCode, String description, String url) {
+        String message;
         switch (errorCode) {
             case -2:
-                return "🌐 网络连接错误\n\n无法连接到互联网，请检查网络后重试。";
+                message = getString(R.string.error_network);
+                break;
             case -3:
-                return "🔧 DNS 解析错误\n\n无法解析网址，请检查网址是否正确。";
-            case -5:
-                return "🔧 主机名验证失败\n\n网址验证失败。";
+                message = getString(R.string.error_dns);
+                break;
             case -6:
-                return "🌐 重定向循环\n\n网页存在重定向循环。";
-            case 18:
-            case 21:
-            case 26:
-                return "📜 SSL 证书错误\n\n网页证书不受信任或已过期。";
+                message = getString(R.string.error_redirect);
+                break;
             default:
-                return "⚠️ 网页加载失败\n\n"
-                        + description
-                        + "\n错误码：" + errorCode
-                        + "\nURL：" + url;
+                message = getString(R.string.error_unknown) + "\n\n" + description;
         }
+        return message + "\n\n错误码：" + errorCode;
+    }
+
+    // ==================== 生命周期 ====================
+
+    @Override
+    protected void onDestroy() {
+        if (webView != null) {
+            webView.destroy();
+        }
+        super.onDestroy();
     }
 }
