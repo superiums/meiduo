@@ -199,7 +199,8 @@ public class MainActivity extends Activity {
             }
         });
 
-        webView.setBackgroundColor(Color.WHITE);
+        // webView.setBackgroundColor(Color.parseColor("#403F3F"));
+        webView.setBackgroundColor(getColor(android.R.color.transparent));
     }
 
     // ==================== 底部导航 ====================

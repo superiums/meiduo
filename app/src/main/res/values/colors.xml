@@ -2,4 +2,10 @@
 <resources>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <!-- 底部导航栏背景（深色模式） -->
+    <color name="bottom_nav_bg">#1F1F1F</color>
+    <!-- 导航文字普通色（深色模式） -->
+    <color name="nav_text_normal">#888888</color>
+    <!-- 导航文字选中色 -->
+    <color name="nav_text_active">#3DDC84</color>
 </resources>
