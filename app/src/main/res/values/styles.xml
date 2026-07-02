@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Meiduo" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- 移除 ActionBar 以隐藏地址栏 -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        
+        <!-- 全屏显示 -->
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        
+        <!-- 状态栏透明 -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        
+        <!-- 移除默认动画 -->
+        <item name="android:windowAnimationStyle">@android:style/Animation.None</item>
+    </style>
+</resources>
