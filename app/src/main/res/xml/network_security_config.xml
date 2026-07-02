@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+
+    <!-- 全局默认：禁止明文 HTTP -->
+    <base-config cleartextTrafficPermitted="false" />
+
+    <!-- 仅允许指定域名 / IP 使用 HTTP -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- 例：允许 www.baidu.com 及其子域 -->
+        <domain includeSubdomains="true">chana.cc.cd</domain>
+        <!-- 如果是 IP 地址也可以写，如：
+        <domain includeSubdomains="false">192.168.1.100</domain>
+        -->
+    </domain-config>
+
+</network-security-config>
