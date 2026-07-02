@@ -41,6 +41,9 @@ jobs:
             ${{ runner.os }}-gradle-restore-keys
 
       # 4. 授予 gradlew 执行权限
+      - name: create gradlew
+        run: gradle wrapper
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
