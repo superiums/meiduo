@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
                                            @NonNull android.webkit.SslErrorHandler handler,
                                            @NonNull SslError error) {
                 showErrorView(
-                        error.getSslErrorType(),
+                        error.getPrimaryError(),
                         getString(R.string.error_ssl),
                         error.getUrl()
                 );
