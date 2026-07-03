@@ -19,6 +19,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
+import android.webkit.WebResourceError;
 
 /**
  * 美朵 - 固定展示网页的 Android 应用
