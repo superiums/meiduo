@@ -15,8 +15,11 @@
 
     <!-- 错误提示 -->
     <string name="error_network">网络累坏啦！</string>
-    <string name="error_dns">DNS 解析错误，请检查网址</string>
-    <string name="error_ssl">SSL 证书错误</string>
-    <string name="error_redirect">网页重定向循环</string>
-    <string name="error_unknown">网页加载失败</string>
+    <string name="error_dns">DNS 不靠谱啊</string>
+    <string name="error_ssl">SSL 证书问题</string>
+    <string name="error_redirect">又被重定向了</string>
+    <string name="error_unknown">又出错了，神也难料啊</string>
+    <string name="error_connection_failed">连不上呀连不上</string>
+    <string name="error_timeout">没反应呀没反应</string>
+
 </resources>

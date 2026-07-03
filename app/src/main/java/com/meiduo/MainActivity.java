@@ -1,157 +1,85 @@
 package com.meiduo;
 
-import android.app.Activity;
 import android.graphics.Color;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.view.View;
-import android.webkit.WebBackForwardList;
+import android.webkit.SslError;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.FrameLayout;
 
-import java.util.ArrayList;
-import java.util.List;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
-/**
- * 美朵 - 固定展示网页的 Android 应用
- * ✅ 底部导航栏（图标+文字）+ 滑动返回 + 加载动画
- * ✅ URL 和文案全部来自 strings.xml
- */
-public class MainActivity extends Activity {
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+public class MainActivity extends AppCompatActivity {
+
+    // ==================== UI ====================
+    private WebView webView;
+    private ProgressBar loadingProgress;
     private FrameLayout animationContainer;
     private FrameLayout errorContainer;
     private ImageView errorSvg;
     private TextView errorMessage;
-    private ImageView loadingIcon;
 
-    // ==================== UI 组件 ====================
-    private WebView webView;
-    private ProgressBar loadingProgress;
-
-    // 导航项（容器 + 图标 + 文字）
-    private NavItem navHome;
-    private NavItem navPage2;
-    private NavItem navPage3;
-    private NavItem navPage4;
+    private BottomNavigationView bottomNav;
 
     // ==================== 状态 ====================
     private static final int STATE_WEB = 1;
     private static final int STATE_ERROR = 2;
     private int currentState = STATE_WEB;
 
-    // URL 历史（用于滑动返回）
-    private final List<String> urlHistory = new ArrayList<>();
-    private int currentNavIndex = 0;
+    // URL 历史（用于返回栈）
+    private final java.util.List<String> urlHistory = new java.util.ArrayList<>();
 
-    // ==================== 导航项数据类 ====================
-    private static class NavItem {
-        LinearLayout container;
-        ImageView icon;
-        TextView text;
-        String url;
-        int iconRes;       // 普通图标
-        int iconActiveRes;  // 选中图标
-
-        NavItem(LinearLayout container, ImageView icon, TextView text,
-                String url, int iconRes, int iconActiveRes) {
-            this.container = container;
-            this.icon = icon;
-            this.text = text;
-            this.url = url;
-            this.iconRes = iconRes;
-            this.iconActiveRes = iconActiveRes;
-        }
-    }
-
+    // ==================== Lifecycle ====================
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         initViews();
-        // 初始化动画容器和错误视图
+        setupWebView();
+        setupBottomNavigation();
+        loadHome();
+    }
+
+    // ==================== Init ====================
+    private void initViews() {
+        webView = findViewById(R.id.webView);
+        loadingProgress = findViewById(R.id.loadingProgress);
         animationContainer = findViewById(R.id.animationContainer);
         errorContainer = findViewById(R.id.errorContainer);
         errorSvg = findViewById(R.id.errorSvg);
         errorMessage = findViewById(R.id.errorMessage);
-        setupWebView();
-        setupNavigation();
-        loadHome();
+
+        bottomNav = findViewById(R.id.bottom_nav);
     }
 
-    // ==================== 初始化 UI ====================
-
-    private void initViews() {
-        webView = findViewById(R.id.webView);
-        loadingProgress = findViewById(R.id.loadingProgress);
-
-        // 首页
-        navHome = new NavItem(
-                findViewById(R.id.nav_home),
-                findViewById(R.id.nav_home_icon),
-                findViewById(R.id.nav_home_text),
-                getString(R.string.url_home),
-                R.drawable.ic_home,
-                R.drawable.ic_home_active
-        );
-
-        // 发现
-        navPage2 = new NavItem(
-                findViewById(R.id.nav_page2),
-                findViewById(R.id.nav_page2_icon),
-                findViewById(R.id.nav_page2_text),
-                getString(R.string.url_page2),
-                R.drawable.ic_2,
-                R.drawable.ic_2_active
-        );
-
-        // 消息
-        navPage3 = new NavItem(
-                findViewById(R.id.nav_page3),
-                findViewById(R.id.nav_page3_icon),
-                findViewById(R.id.nav_page3_text),
-                getString(R.string.url_page3),
-                R.drawable.ic_3,
-                R.drawable.ic_3_active
-        );
-
-        // 我的
-        navPage4 = new NavItem(
-                findViewById(R.id.nav_page4),
-                findViewById(R.id.nav_page4_icon),
-                findViewById(R.id.nav_page4_text),
-                getString(R.string.url_page4),
-                R.drawable.ic_4,
-                R.drawable.ic_4_active
-        );
-    }
-
-    // ==================== WebView 配置 ====================
-
+    // ==================== WebView ====================
     private void setupWebView() {
         WebSettings settings = webView.getSettings();
 
         settings.setJavaScriptEnabled(true);
-        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        settings.setAllowUniversalAccessFromFileURLs(false);
-        settings.setAllowFileAccess(true);
-        settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setAllowFileAccess(true);
 
         WebView.setWebContentsDebuggingEnabled(true);
 
-        // 进度条
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
@@ -167,15 +95,9 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
 
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                urlHistory.add(url);
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                urlHistory.add(request.getUrl().toString());
                 return false;
-            }
-
-            @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                // 如果已知网络不可用，可直接返回空响应
-                return super.shouldInterceptRequest(view, request);
             }
 
             @Override
@@ -184,20 +106,16 @@ public class MainActivity extends Activity {
                 showWebView();
             }
 
+            /* ✅ 主框架错误（ERR_NAME_NOT_RESOLVED / ERR_CONNECTION_REFUSED 等） */
             @Override
-            public void onReceivedError(WebView view, int errorCode,
-                                        String description, String failingUrl) {
-                showErrorView(errorCode, description, failingUrl);
-            }
-
-            @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                // 只处理主框架（页面级错误），不处理图片/JS等资源错误
+            public void onReceivedError(@NonNull WebView view,
+                                        @NonNull WebResourceRequest request,
+                                        @NonNull WebResourceError error) {
                 if (request.isForMainFrame()) {
                     int errorCode = error.getErrorCode();
                     String description = error.getDescription() != null
                             ? error.getDescription().toString()
-                            : "网络开小差啦！";
+                            : "";
                     String failingUrl = request.getUrl() != null
                             ? request.getUrl().toString()
                             : "";
@@ -207,82 +125,61 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void onReceivedSslError(WebView view,
-                                           android.webkit.SslErrorHandler handler,
-                                           SslError error) {
+            public void onReceivedHttpError(@NonNull WebView view,
+                                            @NonNull WebResourceRequest request,
+                                            @NonNull WebResourceResponse response) {
+                if (request.isForMainFrame()) {
+                    showErrorView(
+                            response.getStatusCode(),
+                            response.getReasonPhrase(),
+                            request.getUrl().toString()
+                    );
+                }
+            }
+
+            @Override
+            public void onReceivedSslError(@NonNull WebView view,
+                                           @NonNull android.webkit.SslErrorHandler handler,
+                                           @NonNull SslError error) {
                 showErrorView(
-                        error.getPrimaryError(),
+                        error.getSslErrorType(),
                         getString(R.string.error_ssl),
                         error.getUrl()
                 );
                 handler.cancel();
             }
-
-            @Override
-            public void onReceivedHttpError(WebView view,
-                                            WebResourceRequest request,
-                                            WebResourceResponse response) {
-                showErrorView(
-                        response.getStatusCode(),
-                        response.getReasonPhrase(),
-                        request.getUrl().toString()
-                );
-            }
         });
 
-        // webView.setBackgroundColor(Color.parseColor("#403F3F"));
-        webView.setBackgroundColor(getColor(android.R.color.transparent));
+        webView.setBackgroundColor(Color.TRANSPARENT);
     }
 
-    // ==================== 底部导航 ====================
+    // ==================== Bottom Navigation ====================
+    private void setupBottomNavigation() {
+        bottomNav.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            String url;
 
-    private void setupNavigation() {
-        navHome.container.setOnClickListener(v -> selectNav(navHome, 0));
-        navPage2.container.setOnClickListener(v -> selectNav(navPage2, 1));
-        navPage3.container.setOnClickListener(v -> selectNav(navPage3, 2));
-        navPage4.container.setOnClickListener(v -> selectNav(navPage4, 3));
+            if (itemId == R.id.nav_home) {
+                url = getString(R.string.url_home);
+            } else if (itemId == R.id.nav_page2) {
+                url = getString(R.string.url_page2);
+            } else if (itemId == R.id.nav_page3) {
+                url = getString(R.string.url_page3);
+            } else if (itemId == R.id.nav_page4) {
+                url = getString(R.string.url_page4);
+            } else {
+                return false;
+            }
+
+            loadUrl(url);
+            return true;
+        });
     }
 
-    /**
-     * 选中指定导航项，加载对应 URL
-     */
-    private void selectNav(NavItem item, int index) {
-        if (currentNavIndex != index) {
-            currentNavIndex = index;
-            loadUrl(item.url);
-            highlightNav(item);
-        }
-    }
-
-    /**
-     * 高亮当前导航项，切换图标和文字颜色
-     */
-    private void highlightNav(NavItem active) {
-        // 全部重置为普通态
-        resetNav(navHome);
-        resetNav(navPage2);
-        resetNav(navPage3);
-        resetNav(navPage4);
-
-        // 选中项：切换图标 + 高亮文字
-        active.icon.setImageResource(active.iconActiveRes);
-        active.text.setTextColor(Color.parseColor("#3DDC84"));
-    }
-
-    /**
-     * 重置导航项为普通态
-     */
-    private void resetNav(NavItem item) {
-        item.icon.setImageResource(item.iconRes);
-        item.text.setTextColor(Color.parseColor("#999999"));
-    }
-
-    // ==================== 页面加载 ====================
-
+    // ==================== Page Load ====================
     private void loadHome() {
-        currentNavIndex = 0;
-        loadUrl(navHome.url);
-        highlightNav(navHome);
+        bottomNav.setSelectedItemId(R.id.nav_home);
+        loadUrl(getString(R.string.url_home));
     }
 
     private void loadUrl(String url) {
@@ -290,95 +187,82 @@ public class MainActivity extends Activity {
         webView.loadUrl(url);
     }
 
-    // ==================== 滑动返回 ====================
-
-    @Override
-    public void onBackPressed() {
-        goBack();
+    // ==================== State Control ====================
+    private void showLoading() {
+        currentState = STATE_WEB;
+        loadingProgress.setVisibility(View.VISIBLE);
+        animationContainer.setVisibility(View.VISIBLE);
+        webView.setVisibility(View.GONE);
+        errorContainer.setVisibility(View.GONE);
     }
 
-    private void goBack() {
+    private void hideLoading() {
+        loadingProgress.setVisibility(View.GONE);
+        animationContainer.setVisibility(View.GONE);
+    }
+
+    private void showWebView() {
+        currentState = STATE_WEB;
+        loadingProgress.setVisibility(View.GONE);
+        animationContainer.setVisibility(View.GONE);
+        webView.setVisibility(View.VISIBLE);
+        errorContainer.setVisibility(View.GONE);
+    }
+
+    private void showErrorView(int errorCode, String description, String url) {
+        if (currentState == STATE_ERROR) return;
+
+        currentState = STATE_ERROR;
+
+        loadingProgress.setVisibility(View.GONE);
+        animationContainer.setVisibility(View.GONE);
+        webView.setVisibility(View.GONE);
+        errorContainer.setVisibility(View.VISIBLE);
+        errorSvg.setVisibility(View.VISIBLE);
+
+        errorMessage.setText(mapNetworkErrorToMessage(errorCode)
+                + "\n\n错误码：" + errorCode);
+    }
+
+    // ==================== Error Mapping ====================
+    private String mapNetworkErrorToMessage(int errorCode) {
+        switch (errorCode) {
+            case -105: // ERR_NAME_NOT_RESOLVED
+                return getString(R.string.error_dns);
+            case -106: // ERR_CONNECTION_REFUSED
+            case -102: // ERR_CONNECTION_FAILED
+                return getString(R.string.error_connection_failed);
+            case -2:   // ERR_INTERNET_DISCONNECTED
+                return getString(R.string.error_network);
+            case -8:   // ERR_CONNECTION_TIMED_OUT
+            case -118: // ERR_DNS_TIMED_OUT
+                return getString(R.string.error_timeout);
+            case -6:   // ERR_TOO_MANY_REDIRECTS
+                return getString(R.string.error_redirect);
+            default:
+                return getString(R.string.error_unknown);
+        }
+    }
+
+    // ==================== Back Navigation ====================
+    @Override
+    public void onBackPressed() {
         if (webView.canGoBack()) {
             webView.goBack();
             if (!urlHistory.isEmpty()) {
                 urlHistory.remove(urlHistory.size() - 1);
             }
         } else {
-            // 已在最底层，回到首页或退出
-            if (currentNavIndex != 0) {
-                navHome.container.performClick();
+            int currentTab = bottomNav.getSelectedItemId();
+            if (currentTab != R.id.nav_home) {
+                bottomNav.setSelectedItemId(R.id.nav_home);
             } else {
                 finish();
             }
         }
     }
 
-    // ==================== 状态切换 ====================
-
-private void showLoading() {
-    currentState = STATE_WEB;
-    loadingProgress.setVisibility(View.VISIBLE);
-    animationContainer.setVisibility(View.VISIBLE);
-    webView.setVisibility(View.GONE);
-    errorContainer.setVisibility(View.GONE);
-    errorSvg.setVisibility(View.GONE);
-    errorMessage.setText("");
-}
-
-private void hideLoading() {
-    loadingProgress.setVisibility(View.GONE);
-    animationContainer.setVisibility(View.GONE);
-}
-
-private void showWebView() {
-    currentState = STATE_WEB;
-    loadingProgress.setVisibility(View.GONE);
-    animationContainer.setVisibility(View.GONE);
-    webView.setVisibility(View.VISIBLE);
-    errorContainer.setVisibility(View.GONE);
-}
-
-private void showErrorView(int errorCode, String description, String url) {
-    if (currentState != STATE_ERROR) {
-        currentState = STATE_ERROR;
-        loadingProgress.setVisibility(View.GONE);
-        animationContainer.setVisibility(View.GONE);
-        webView.setVisibility(View.GONE);
-        errorContainer.setVisibility(View.VISIBLE);
-        errorSvg.setVisibility(View.VISIBLE);
-        errorMessage.setText(formatErrorMessage(errorCode, description, url));
-    }
-}
-
-    // ==================== 错误消息 ====================
-
-    private String formatErrorMessage(int errorCode, String description, String url) {
-        String message;
-        switch (errorCode) {
-            case -2:
-                message = getString(R.string.error_network);
-                break;
-            case -3:
-                message = getString(R.string.error_dns);
-                break;
-            case -6:
-                message = getString(R.string.error_redirect);
-                break;
-            case -105: // ERR_NAME_NOT_RESOLVED
-            case -106: // ERR_CONNECTION_REFUSED
-            case -102: // ERR_CONNECTION_FAILED
-            case -8:   // ERR_CONNECTION_TIMED_OUT
-            case -118: // ERR_DNS_TIMED_OUT
-                message = getString(R.string.error_network);
-                break;
-            default:
-                message = getString(R.string.error_unknown) + "\n\n" + description;
-        }
-        return message + "\n\n错误码：" + errorCode;
-    }
-
-    // ==================== 生命周期 ====================
-
+    // ==================== Lifecycle ====================
     @Override
     protected void onDestroy() {
         if (webView != null) {
