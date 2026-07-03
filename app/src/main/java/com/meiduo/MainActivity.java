@@ -4,7 +4,6 @@ import android.graphics.Color;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.view.View;
-import android.webkit.SslError;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -140,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onReceivedSslError(@NonNull WebView view,
                                            @NonNull android.webkit.SslErrorHandler handler,
-                                           @NonNull SslError error) {
+                                           @NonNull android.webkit.SslError error) {
                 showErrorView(
                         error.getPrimaryError(),
                         getString(R.string.error_ssl),
@@ -148,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
                 );
                 handler.cancel();
             }
+
         });
 
         webView.setBackgroundColor(Color.TRANSPARENT);
