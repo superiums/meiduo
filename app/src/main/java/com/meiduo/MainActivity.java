@@ -135,17 +135,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            @Override
-            public void onReceivedSslError(@NonNull WebView view,
-                                           @NonNull android.webkit.SslErrorHandler handler,
-                                           @NonNull android.webkit.SslError error) {
-                showErrorView(
-                        error.getPrimaryError(),
-                        getString(R.string.error_ssl),
-                        error.getUrl()
-                );
-                handler.cancel();
-            }
+@Override
+public void onReceivedSslError(
+        WebView view,
+        android.webkit.SslErrorHandler handler,
+        Object error
+) {
+
+    showErrorView(
+            -1,
+            getString(R.string.error_ssl),
+            ""
+    );
+    handler.cancel();
+}
 
         });
 
