@@ -1,7 +1,6 @@
 package com.meiduo;
 
 import android.graphics.Color;
-import android.net.http.SslError;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebChromeClient;
