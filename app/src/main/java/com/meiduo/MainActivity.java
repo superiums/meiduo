@@ -73,6 +73,11 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         initViews();
+        // 初始化动画容器和错误视图
+        animationContainer = findViewById(R.id.animationContainer);
+        errorContainer = findViewById(R.id.errorContainer);
+        errorSvg = findViewById(R.id.errorSvg);
+        errorMessage = findViewById(R.id.errorMessage);
         setupWebView();
         setupNavigation();
         loadHome();
@@ -216,9 +221,11 @@ public class MainActivity extends Activity {
      * 选中指定导航项，加载对应 URL
      */
     private void selectNav(NavItem item, int index) {
-        currentNavIndex = index;
-        loadUrl(item.url);
-        highlightNav(item);
+        if (currentNavIndex != index) {
+            currentNavIndex = index;
+            loadUrl(item.url);
+            highlightNav(item);
+        }
     }
 
     /**
@@ -282,33 +289,40 @@ public class MainActivity extends Activity {
 
     // ==================== 状态切换 ====================
 
-    private void showLoading() {
-        currentState = STATE_WEB;
-        loadingProgress.setVisibility(View.VISIBLE);
-        webView.setVisibility(View.VISIBLE);
-        errorView.setVisibility(View.GONE);
-    }
+private void showLoading() {
+    currentState = STATE_WEB;
+    loadingProgress.setVisibility(View.VISIBLE);
+    animationContainer.setVisibility(View.VISIBLE);
+    webView.setVisibility(View.GONE);
+    errorContainer.setVisibility(View.GONE);
+    errorSvg.setVisibility(View.GONE);
+    errorMessage.setText("");
+}
 
-    private void hideLoading() {
+private void hideLoading() {
+    loadingProgress.setVisibility(View.GONE);
+    animationContainer.setVisibility(View.GONE);
+}
+
+private void showWebView() {
+    currentState = STATE_WEB;
+    loadingProgress.setVisibility(View.GONE);
+    animationContainer.setVisibility(View.GONE);
+    webView.setVisibility(View.VISIBLE);
+    errorContainer.setVisibility(View.GONE);
+}
+
+private void showErrorView(int errorCode, String description, String url) {
+    if (currentState != STATE_ERROR) {
+        currentState = STATE_ERROR;
         loadingProgress.setVisibility(View.GONE);
+        animationContainer.setVisibility(View.GONE);
+        webView.setVisibility(View.GONE);
+        errorContainer.setVisibility(View.VISIBLE);
+        errorSvg.setVisibility(View.VISIBLE);
+        errorMessage.setText(formatErrorMessage(errorCode, description, url));
     }
-
-    private void showWebView() {
-        currentState = STATE_WEB;
-        loadingProgress.setVisibility(View.GONE);
-        webView.setVisibility(View.VISIBLE);
-        errorView.setVisibility(View.GONE);
-    }
-
-    private void showErrorView(int errorCode, String description, String url) {
-        if (currentState != STATE_ERROR) {
-            currentState = STATE_ERROR;
-            loadingProgress.setVisibility(View.GONE);
-            webView.setVisibility(View.GONE);
-            errorView.setVisibility(View.VISIBLE);
-            errorView.setText(formatErrorMessage(errorCode, description, url));
-        }
-    }
+}
 
     // ==================== 错误消息 ====================
 

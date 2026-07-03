@@ -1,0 +1,17 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:name="tadpole"
+        android:fillColor="@android:color/white"
+        android:pathData="
+            M12,23
+            a9.63,9.63,0,0,1-8-9.5
+            a9.51,9.51,0,0,1,6.79-9.1
+            A1.66,1.66,0,0,0,12,2.81
+            a1.67,1.67,0,0,0-1.94-1.64
+            A11,11,0,0,0,12,23Z" />
+</vector>
