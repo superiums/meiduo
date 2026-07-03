@@ -26,11 +26,15 @@ import java.util.List;
  * ✅ URL 和文案全部来自 strings.xml
  */
 public class MainActivity extends Activity {
+    private FrameLayout animationContainer;
+    private FrameLayout errorContainer;
+    private ImageView errorSvg;
+    private TextView errorMessage;
+    private ImageView loadingIcon;
 
     // ==================== UI 组件 ====================
     private WebView webView;
     private ProgressBar loadingProgress;
-    private TextView errorView;
 
     // 导航项（容器 + 图标 + 文字）
     private NavItem navHome;
@@ -88,7 +92,6 @@ public class MainActivity extends Activity {
     private void initViews() {
         webView = findViewById(R.id.webView);
         loadingProgress = findViewById(R.id.loadingProgress);
-        errorView = findViewById(R.id.errorView);
 
         // 首页
         navHome = new NavItem(
