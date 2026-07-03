@@ -173,6 +173,12 @@ public class MainActivity extends Activity {
             }
 
             @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                // 如果已知网络不可用，可直接返回空响应
+                return super.shouldInterceptRequest(view, request);
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 showWebView();
@@ -182,6 +188,22 @@ public class MainActivity extends Activity {
             public void onReceivedError(WebView view, int errorCode,
                                         String description, String failingUrl) {
                 showErrorView(errorCode, description, failingUrl);
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                // 只处理主框架（页面级错误），不处理图片/JS等资源错误
+                if (request.isForMainFrame()) {
+                    int errorCode = error.getErrorCode();
+                    String description = error.getDescription() != null
+                            ? error.getDescription().toString()
+                            : "网络开小差啦！";
+                    String failingUrl = request.getUrl() != null
+                            ? request.getUrl().toString()
+                            : "";
+
+                    showErrorView(errorCode, description, failingUrl);
+                }
             }
 
             @Override
@@ -341,6 +363,13 @@ private void showErrorView(int errorCode, String description, String url) {
                 break;
             case -6:
                 message = getString(R.string.error_redirect);
+                break;
+            case -105: // ERR_NAME_NOT_RESOLVED
+            case -106: // ERR_CONNECTION_REFUSED
+            case -102: // ERR_CONNECTION_FAILED
+            case -8:   // ERR_CONNECTION_TIMED_OUT
+            case -118: // ERR_DNS_TIMED_OUT
+                message = getString(R.string.error_network);
                 break;
             default:
                 message = getString(R.string.error_unknown) + "\n\n" + description;
