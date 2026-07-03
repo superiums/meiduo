@@ -174,6 +174,21 @@ public class MainActivity extends Activity {
                                         String description, String failingUrl) {
                 showErrorView(errorCode, description, failingUrl);
             }
+            public void onReceivedError(@NonNull WebView view,
+                                        @NonNull WebResourceRequest request,
+                                        @NonNull WebResourceError error) {
+                if (request.isForMainFrame()) {
+                    int errorCode = error.getErrorCode();
+                    String description = error.getDescription() != null
+                            ? error.getDescription().toString()
+                            : "";
+                    String failingUrl = request.getUrl() != null
+                            ? request.getUrl().toString()
+                            : "";
+
+                    showErrorView(errorCode, description, failingUrl);
+                }
+            }
 
             @Override
             public void onReceivedSslError(WebView view,
@@ -216,9 +231,11 @@ public class MainActivity extends Activity {
      * 选中指定导航项，加载对应 URL
      */
     private void selectNav(NavItem item, int index) {
-        currentNavIndex = index;
-        loadUrl(item.url);
-        highlightNav(item);
+        if ( currentNavIndex != index ){
+            currentNavIndex = index;
+            loadUrl(item.url);
+            highlightNav(item);
+        }
     }
 
     /**
