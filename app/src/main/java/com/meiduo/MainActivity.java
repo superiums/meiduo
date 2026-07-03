@@ -135,20 +135,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-@Override
-public void onReceivedSslError(
-        WebView view,
-        android.webkit.SslErrorHandler handler,
-        Object error
-) {
-
-    showErrorView(
-            -1,
-            getString(R.string.error_ssl),
-            ""
-    );
-    handler.cancel();
-}
 
         });
 
